@@ -1,0 +1,38 @@
+{
+  "name": "naukri_updater",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:login": "playwright test --project=chromium-unauthenticated",
+    "test:update": "playwright test --project=chromium-authenticated",
+    "test:setup": "playwright test --project=setup",
+    "navigate:login": "tsx src/scripts/navigate-login.ts",
+    "navigate:login:headed": "cross-env HEADLESS=false tsx src/scripts/navigate-login.ts",
+    "login": "cross-env HEADLESS=false tsx src/scripts/login-naukri.ts",
+    "login:headed": "cross-env HEADLESS=false tsx src/scripts/login-naukri.ts",
+    "session:check": "tsx src/scripts/check-session.ts",
+    "session:check:headed": "cross-env HEADLESS=false tsx src/scripts/check-session.ts",
+    "profile:complete": "tsx src/scripts/complete-profile.ts",
+    "profile:complete:headed": "cross-env HEADLESS=false tsx src/scripts/complete-profile.ts",
+    "encrypt:key": "tsx src/scripts/encrypt-creds.ts --generate-key",
+    "encrypt:creds": "tsx src/scripts/encrypt-creds.ts",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "codegen": "playwright codegen https://www.naukri.com/nlogin/login"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.4",
+    "cross-env": "^10.1.0",
+    "dotenv": "^18.0.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
