@@ -27,6 +27,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     headless: process.env.HEADLESS !== 'false',
+    // Full Chromium (new headless mode) — the headless-shell binary is
+    // fingerprinted by Naukri's bot-wall and served "Access Denied".
+    channel: 'chromium',
+    launchOptions: {
+      args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'],
+    },
     viewport: { width: 1920, height: 1080 }, // full-HD headed window
     actionTimeout: 20 * 1000,
     navigationTimeout: 60 * 1000,

@@ -52,6 +52,21 @@ export class LoginPage extends BasePage {
 
   async open(): Promise<void> {
     await this.goto(URLS.login);
+    // Fail fast on Naukri's bot-wall instead of timing out 20s per field:
+    // headless-shell / flagged browsers get "Access Denied" with no login form.
+    const title = await this.page.title().catch(() => '');
+    this.log(`Login page title: "${title}" | url: ${this.page.url()}`);
+    const denied =
+      /access denied/i.test(title) ||
+      (await this.page.getByText(/access denied/i).first().isVisible({ timeout: 5000 }).catch(() => false));
+    if (denied) {
+      await this.page.screenshot({ path: 'test-results/login-access-denied.png' });
+      throw new Error(
+        'Naukri bot-wall "Access Denied" — browser flagged as bot (no login form rendered). ' +
+          'Use full Chromium (channel: chromium in playwright.config) or run headed. ' +
+          'Screenshot: test-results/login-access-denied.png'
+      );
+    }
     await this.dismissPopups();
   }
 
