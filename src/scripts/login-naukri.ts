@@ -25,6 +25,7 @@ async function main(): Promise<void> {
   if (hasValidSessionFile()) {
     logger.info(`Found session (${sessionStats()}). Validating without password...`);
     const checkBrowser = await chromium.launch({
+      channel: 'chromium',
       headless: HEADLESS,
       args: ['--disable-blink-features=AutomationControlled', '--no-sandbox', '--start-maximized'],
     });
@@ -54,6 +55,7 @@ async function main(): Promise<void> {
   logger.info(`Logging in as ${masked} (headless=${HEADLESS})...`);
 
   const browser = await chromium.launch({
+    channel: 'chromium',
     headless: HEADLESS,
     args: ['--disable-blink-features=AutomationControlled', '--no-sandbox', '--start-maximized'],
   });

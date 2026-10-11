@@ -21,6 +21,7 @@ async function main(): Promise<void> {
   logger.info(`Checking session (${sessionStats()})...`);
   const HEADLESS = process.env.HEADLESS !== 'false';
   const browser = await chromium.launch({
+    channel: 'chromium',
     headless: HEADLESS,
     args: ['--disable-blink-features=AutomationControlled', '--no-sandbox', '--start-maximized'],
   });
