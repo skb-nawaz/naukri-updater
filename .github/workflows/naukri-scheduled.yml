@@ -46,6 +46,23 @@ jobs:
 
       - run: npm run typecheck
 
+      - name: Restore Naukri session (OTP workaround)
+        # Reuses a session created on your trusted home IP so the run can
+        # skip fresh password login (which triggers OTP on datacenter IPs).
+        # Setup: npm run login (solve OTP once) -> npm run session:export
+        # -> save output as secret NAUKRI_STORAGE_STATE (base64 of auth json).
+        # If secret is missing/expired, the suite falls back to fresh login.
+        env:
+          NAUKRI_STORAGE_STATE: ${{ secrets.NAUKRI_STORAGE_STATE }}
+        run: |
+          mkdir -p auth
+          if [ -n "$NAUKRI_STORAGE_STATE" ]; then
+            echo "$NAUKRI_STORAGE_STATE" | base64 -d > auth/naukri-auth.json
+            echo "Session restored: $(wc -c < auth/naukri-auth.json) bytes"
+          else
+            echo "No NAUKRI_STORAGE_STATE secret — will attempt fresh login (may hit OTP)."
+          fi
+
       - name: Run suite
         run: npx playwright test
         env:

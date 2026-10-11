@@ -15,6 +15,7 @@
     "login": "cross-env HEADLESS=false tsx src/scripts/login-naukri.ts",
     "login:headed": "cross-env HEADLESS=false tsx src/scripts/login-naukri.ts",
     "session:check": "tsx src/scripts/check-session.ts",
+    "session:export": "tsx src/scripts/export-session.ts",
     "session:check:headed": "cross-env HEADLESS=false tsx src/scripts/check-session.ts",
     "profile:complete": "tsx src/scripts/complete-profile.ts",
     "profile:complete:headed": "cross-env HEADLESS=false tsx src/scripts/complete-profile.ts",
