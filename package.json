@@ -8,6 +8,7 @@
     "test:headed": "playwright test --headed",
     "test:login": "playwright test --project=chromium-unauthenticated",
     "test:update": "playwright test --project=chromium-authenticated",
+    "update:naukri": "playwright test",
     "test:setup": "playwright test --project=setup",
     "navigate:login": "tsx src/scripts/navigate-login.ts",
     "navigate:login:headed": "cross-env HEADLESS=false tsx src/scripts/navigate-login.ts",
