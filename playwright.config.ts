@@ -11,7 +11,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false, // Naukri blocks parallel logins from same account
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: 1, // 1 retry (final attempt's screenshot/trace kept on failure)
   workers: 1, // keep 1 to avoid account lockout
   reporter: [
     ['html', { open: 'never' }],
