@@ -106,6 +106,7 @@ jobs:
           ENCRYPTION_KEY: $(ENCRYPTION_KEY)
           NAUKRI_EMAIL_ENCRYPTED: $(NAUKRI_EMAIL_ENCRYPTED)
           NAUKRI_PASSWORD_ENCRYPTED: $(NAUKRI_PASSWORD_ENCRYPTED)
+          NAUKRI_STORAGE_STATE: $(NAUKRI_STORAGE_STATE)
 
       # If the run dies before Playwright starts, the dirs won't exist and
       # the publish tasks would error — create them empty first.
