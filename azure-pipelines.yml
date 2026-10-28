@@ -7,7 +7,7 @@
 #      ENCRYPTION_KEY            = value of ENCRYPTION_KEY
 #      NAUKRI_EMAIL_ENCRYPTED    = value of NAUKRI_EMAIL_ENCRYPTED
 #      NAUKRI_PASSWORD_ENCRYPTED = value of NAUKRI_PASSWORD_ENCRYPTED
-#    (Pipeline variables are auto-injected as env vars — no mapping needed.)
+#    (Secrets are mapped to env vars explicitly in the steps below.)
 # 2. Variables tab → + Add (NOT secret):
 #      CI       = true
 #      HEADLESS = true
@@ -20,10 +20,10 @@ trigger:
       - main
       - master
 
-# Every 2 minutes (Azure cron is UTC) — TESTING ONLY, change back to '0 */2 * * *' (2 hours)
+# Every 10 minutes (Azure cron is UTC) — TESTING, change back to '0 */2 * * *' (2 hours)
 schedules:
-  - cron: '* */2 * * *'
-    displayName: Every 2 minutes (testing)
+  - cron: '*/10 * * * *'
+    displayName: Every 10 minutes (testing)
     branches:
       include:
         - main
