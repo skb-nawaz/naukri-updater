@@ -8,9 +8,9 @@
 #      NAUKRI_EMAIL_ENCRYPTED    = value of NAUKRI_EMAIL_ENCRYPTED
 #      NAUKRI_PASSWORD_ENCRYPTED = value of NAUKRI_PASSWORD_ENCRYPTED
 #    (Secrets are mapped to env vars explicitly in the steps below.)
-# 2. Variables tab → + Add (NOT secret):
-#      CI       = true
-#      HEADLESS = true
+# 2. Optional but recommended — session reuse (fresh password login forces
+#    OTP on CI datacenter IPs): locally `npm run login` (solve OTP once),
+#    then `npm run session:export`, paste output as secret NAUKRI_STORAGE_STATE.
 # 3. Queue on a Microsoft-hosted Ubuntu agent (Linux + sudo for browser deps).
 # ────────────────────────────────────────────────────────────────────────
 
@@ -20,10 +20,10 @@ trigger:
       - main
       - master
 
-# Every 10 minutes (Azure cron is UTC) — TESTING, change back to '0 */2 * * *' (2 hours)
+# Every 2 hours (Azure cron is UTC)
 schedules:
-  - cron: '*/10 * * * *'
-    displayName: Every 10 minutes (testing)
+  - cron: '0 */2 * * *'
+    displayName: Every 2 hours
     branches:
       include:
         - main
@@ -70,6 +70,26 @@ jobs:
           ENCRYPTION_KEY: $(ENCRYPTION_KEY)
           NAUKRI_EMAIL_ENCRYPTED: $(NAUKRI_EMAIL_ENCRYPTED)
           NAUKRI_PASSWORD_ENCRYPTED: $(NAUKRI_PASSWORD_ENCRYPTED)
+
+      # Fresh password login forces OTP on datacenter IPs — reuse a session
+      # created on your home IP instead (see export-session.ts header).
+      # Optional: without the secret, the suite falls back to fresh login.
+      - bash: |
+          mkdir -p auth
+          state=$(printf '%s' "$NAUKRI_STORAGE_STATE" | tr -d '\r\n')
+          if [ -n "$state" ] && [[ "$state" != '$('* ]]; then
+            if printf '%s' "$state" | base64 -d > auth/naukri-auth.json 2>/dev/null && grep -q '"cookies"' auth/naukri-auth.json; then
+              echo "Session restored: $(wc -c < auth/naukri-auth.json) bytes"
+            else
+              rm -f auth/naukri-auth.json
+              echo "NAUKRI_STORAGE_STATE present but invalid — falling back to fresh login."
+            fi
+          else
+            echo "No NAUKRI_STORAGE_STATE secret — fresh login will be attempted (likely hits OTP)."
+          fi
+        displayName: Restore Naukri session (OTP workaround)
+        env:
+          NAUKRI_STORAGE_STATE: $(NAUKRI_STORAGE_STATE)
 
       - script: npm ci
         displayName: Install deps
