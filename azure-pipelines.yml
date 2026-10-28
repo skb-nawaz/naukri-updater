@@ -1,5 +1,5 @@
 # Azure DevOps pipeline — Naukri Updater
-# Runs the full Playwright suite every 2 hours, headless.
+# Runs the full Playwright suite headless (schedule below).
 #
 # ── One-time Azure setup ────────────────────────────────────────────────
 # 1. Pipeline → Edit → Variables (click 🔒 to mark secret), values copied
@@ -37,14 +37,10 @@ variables:
   HEADLESS: 'true'
   CI: 'true'
 
-timeoutInMinutes: 30
-
 jobs:
   - job: PlaywrightSuite
     displayName: Playwright suite
-    # One job at a time across the pipeline
-    strategy:
-      maxParallel: 1
+    timeoutInMinutes: '30'
     steps:
       - task: NodeTool@0
         displayName: Use Node.js 20.x
