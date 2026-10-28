@@ -22,7 +22,7 @@ trigger:
 
 # Every 2 minutes (Azure cron is UTC) — TESTING ONLY, change back to '0 */2 * * *' (2 hours)
 schedules:
-  - cron: '*/2 * * * *'
+  - cron: '* */2 * * *'
     displayName: Every 2 minutes (testing)
     branches:
       include:
