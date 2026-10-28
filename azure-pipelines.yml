@@ -50,6 +50,27 @@ jobs:
       - script: node --version && npm --version
         displayName: Node version
 
+      # Secret vars are NOT auto-injected as env vars — must map explicitly.
+      # Fail fast with a clear message if one is missing or misnamed.
+      - bash: |
+          missing=""
+          for v in ENCRYPTION_KEY NAUKRI_EMAIL_ENCRYPTED NAUKRI_PASSWORD_ENCRYPTED; do
+            val="${!v}"
+            if [ -z "$val" ] || [[ "$val" == '$('* ]]; then
+              missing="$missing $v"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "##vso[task.logissue type=error]Missing/undefined secret(s):$missing — Pipeline → Edit → Variables, exact names above, value from .env, marked secret."
+            exit 1
+          fi
+          echo "All 3 secrets mapped."
+        displayName: Verify secrets are mapped
+        env:
+          ENCRYPTION_KEY: $(ENCRYPTION_KEY)
+          NAUKRI_EMAIL_ENCRYPTED: $(NAUKRI_EMAIL_ENCRYPTED)
+          NAUKRI_PASSWORD_ENCRYPTED: $(NAUKRI_PASSWORD_ENCRYPTED)
+
       - script: npm ci
         displayName: Install deps
 
@@ -61,6 +82,10 @@ jobs:
 
       - script: npx playwright test
         displayName: Run suite
+        env:
+          ENCRYPTION_KEY: $(ENCRYPTION_KEY)
+          NAUKRI_EMAIL_ENCRYPTED: $(NAUKRI_EMAIL_ENCRYPTED)
+          NAUKRI_PASSWORD_ENCRYPTED: $(NAUKRI_PASSWORD_ENCRYPTED)
 
       - task: PublishTestResults@2
         displayName: Publish test results
