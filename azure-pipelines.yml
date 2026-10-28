@@ -1,21 +1,84 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+# Azure DevOps pipeline — Naukri Updater
+# Runs the full Playwright suite every 2 hours, headless.
+#
+# ── One-time Azure setup ────────────────────────────────────────────────
+# 1. Pipeline → Edit → Variables (click 🔒 to mark secret), values copied
+#    from your local .env (get them with: npm run encrypt:creds):
+#      ENCRYPTION_KEY            = value of ENCRYPTION_KEY
+#      NAUKRI_EMAIL_ENCRYPTED    = value of NAUKRI_EMAIL_ENCRYPTED
+#      NAUKRI_PASSWORD_ENCRYPTED = value of NAUKRI_PASSWORD_ENCRYPTED
+#    (Pipeline variables are auto-injected as env vars — no mapping needed.)
+# 2. Variables tab → + Add (NOT secret):
+#      CI       = true
+#      HEADLESS = true
+# 3. Queue on a Microsoft-hosted Ubuntu agent (Linux + sudo for browser deps).
+# ────────────────────────────────────────────────────────────────────────
 
 trigger:
-- main
+  branches:
+    include:
+      - main
+      - master
+
+# Every 2 minutes (Azure cron is UTC) — TESTING ONLY, change back to '0 */2 * * *' (2 hours)
+schedules:
+  - cron: '*/2 * * * *'
+    displayName: Every 2 minutes (testing)
+    branches:
+      include:
+        - main
+        - master
+    always: true # run even if no code changes
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '20.x'
-  displayName: 'Install Node.js'
+variables:
+  HEADLESS: 'true'
+  CI: 'true'
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+timeoutInMinutes: 30
+
+jobs:
+  - job: PlaywrightSuite
+    displayName: Playwright suite
+    # One job at a time across the pipeline
+    strategy:
+      maxParallel: 1
+    steps:
+      - task: NodeTool@0
+        displayName: Use Node.js 20.x
+        inputs:
+          versionSpec: '20.x'
+
+      - script: node --version && npm --version
+        displayName: Node version
+
+      - script: npm ci
+        displayName: Install deps
+
+      - script: npx playwright install --with-deps chromium || npx playwright install chromium
+        displayName: Install browsers
+
+      - script: npm run typecheck
+        displayName: Typecheck
+
+      - script: npx playwright test
+        displayName: Run suite
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        condition: always()
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: 'test-results/*.xml'
+          mergeTestResults: true
+          failTaskOnFailedTests: false
+          failTaskOnMissingResultsFile: false
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish HTML report
+        condition: always()
+        inputs:
+          targetPath: 'playwright-report'
+          artifact: 'playwright-report'

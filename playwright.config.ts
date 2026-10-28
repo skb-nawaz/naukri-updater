@@ -16,6 +16,7 @@ export default defineConfig({
   reporter: [
     ['html', { open: 'never' }],
     ['list'],
+    ['junit', { outputFile: 'test-results/junit.xml' }],
   ],
   timeout: 90 * 1000,
   expect: {
