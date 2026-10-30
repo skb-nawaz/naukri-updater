@@ -16,6 +16,13 @@
 //    Repository URL: https://github.com/skb-nawaz/naukri-updater.git
 //    Script Path: Jenkinsfile
 //    (Polling NOT needed — the cron trigger below schedules every 2h.)
+//
+// ── Session renewal (when a build fails with CAPTCHA) ──────────────────
+// Unattended runs never solve the CAPTCHA: they reuse auth/naukri-auth.json.
+// When it expires, refresh it ONCE on this machine (headed, solve CAPTCHA):
+//    npm run login
+// The "Sync session" stage below copies it into the Jenkins workspace, so
+// the next build is green again.
 // ───────────────────────────────────────────────────────────────────────
 
 pipeline {
@@ -44,6 +51,8 @@ pipeline {
     ENCRYPTION_KEY            = credentials('naukri-encryption-key')
     NAUKRI_EMAIL_ENCRYPTED    = credentials('naukri-email-encrypted')
     NAUKRI_PASSWORD_ENCRYPTED = credentials('naukri-password-encrypted')
+    // Local repo on this same machine — source of the reusable Naukri session
+    LOCAL_REPO = 'E:\\Automation\\naukri_updater'
   }
 
   stages {
@@ -79,6 +88,35 @@ pipeline {
             sh 'npx playwright install --with-deps chromium || npx playwright install chromium'
           } else {
             bat 'npx playwright install chromium'
+          }
+        }
+      }
+    }
+
+    stage('Sync session') {
+      steps {
+        script {
+          // Fresh session file from the local repo (refreshed by `npm run login`)
+          // keeps unattended runs off the CAPTCHA/OTP fresh-login flow.
+          if (isUnix()) {
+            sh '''
+              if [ -f "$LOCAL_REPO/auth/naukri-auth.json" ]; then
+                mkdir -p auth && cp -f "$LOCAL_REPO/auth/naukri-auth.json" auth/naukri-auth.json
+                echo "Synced session from $LOCAL_REPO"
+              else
+                echo "No session at $LOCAL_REPO/auth/naukri-auth.json — tests will attempt a fresh login."
+              fi
+            '''
+          } else {
+            bat '''
+              if exist "%LOCAL_REPO%\\auth\\naukri-auth.json" (
+                if not exist auth mkdir auth
+                copy /Y "%LOCAL_REPO%\\auth\\naukri-auth.json" "auth\\naukri-auth.json" >nul
+                echo Synced session from %LOCAL_REPO%
+              ) else (
+                echo No session at %LOCAL_REPO%\\auth\\naukri-auth.json — tests will attempt a fresh login.
+              )
+            '''
           }
         }
       }

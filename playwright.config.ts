@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
 import * as path from 'path';
 
 // Load env from .env (fallback to .env.example values in code)
@@ -48,6 +49,12 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
+      // Load the stored session into setup's page — otherwise isSessionLive()
+      // always sees a logged-out context and forces a fresh password login,
+      // which hits CAPTCHA/OTP on unattended (Jenkins) runs.
+      use: {
+        ...(fs.existsSync(AUTH_FILE) ? { storageState: AUTH_FILE } : {}),
+      },
     },
     // 2️⃣ Authenticated tests — reuse login session
     {
